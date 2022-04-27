@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/png"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 
@@ -17,11 +18,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// process request
+/* process request */
 func Signup(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "multipart/form-data")
+	// response header
+	w.Header().Set("Content-Type", "application/json")
 
-	user, profileImage := processRequestParams(r)
+	logger := common.GetLogger("signup_api")
+	user, profileImage := processRequestParams(logger, r)
 	user.ProfileImageUrl = generateProfileImageUrl(profileImage)
 	user.Password = createHashOfPassword(user.Password)
 	insertUserIntoDB(user)
@@ -30,12 +33,12 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&response)
 }
 
-// request processing utils
-func processRequestParams(r *http.Request) (models.User, multipart.File) {
+/* request processing utils */
+func processRequestParams(logger *log.Logger, r *http.Request) (models.User, multipart.File) {
 	var user models.User
 	error := r.ParseMultipartForm(5 * 1024 * 1024)
 	if error != nil {
-		panic(error)
+		logger.Println(error)
 	}
 	user.Name = r.PostForm.Get("name")
 	user.PhoneNumber = r.PostForm.Get("phone_number")

@@ -3,6 +3,9 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -24,4 +27,11 @@ func UploadFileIntoS3(s3Uploader *s3manager.Uploader, bucket string, fileName st
 	})
 	fmt.Println(result)
 	fmt.Println(error)
+}
+
+func GetLogger(fileName string) *log.Logger {
+	absPath, _ := filepath.Abs("./logs")
+	os.Mkdir(absPath, os.ModePerm) // create logs folder if not exists
+	loggerFile, _ := os.OpenFile(absPath+"/"+fileName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	return log.New(loggerFile, "", log.Ldate|log.Ltime|log.Lshortfile)
 }
