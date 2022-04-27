@@ -9,6 +9,6 @@ import (
 
 func main() {
 	router := router.RouterV1()
-	log.Fatal(http.ListenAndServe(":4000", router))
 	fmt.Println("Server is listening at port 4000")
+	log.Fatal(http.ListenAndServe(":4000", router))
 }
