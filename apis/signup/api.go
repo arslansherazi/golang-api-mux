@@ -13,6 +13,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 	"golang.org/x/crypto/bcrypt"
@@ -44,7 +45,16 @@ func processRequestParams(logger *log.Logger, r *http.Request) (models.User, mul
 	user.PhoneNumber = r.PostForm.Get("phone_number")
 	user.Password = r.PostForm.Get("password")
 	profileImage, _, _ := r.FormFile("profile_image")
-	defer profileImage.Close()
+	// defer profileImage.Close()
+
+	// validate the request data
+	validate := validator.New()
+	err := validate.Struct(user)
+	validationErrors := err.(validator.ValidationErrors)
+	if validationErrors != nil {
+		logger.Println(validationErrors)
+	}
+
 	return user, profileImage
 }
 
