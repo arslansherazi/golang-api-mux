@@ -11,6 +11,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
@@ -66,7 +67,7 @@ func generateProfileImageUrl(profileImage multipart.File) (string, error) {
 
 	// TODO: Just for testing purpose
 	fileName := uuid.New().String() + common.IMAGES_EXTENSION
-	profileImageUrl = common.BUCKET_BASE_URL + fileName
+	profileImageUrl = os.Getenv("BUCKET_BASE_URL") + fileName
 
 	return profileImageUrl, nil
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func GetS3Uploader() (*s3manager.Uploader, error) {
-	session, err := session.NewSession(&aws.Config{Region: aws.String(AWS_REGION)})
+	session, err := session.NewSession(&aws.Config{Region: aws.String(os.Getenv("AWS_REGION"))})
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func GetS3Uploader() (*s3manager.Uploader, error) {
 
 func UploadFileIntoS3(s3Uploader *s3manager.Uploader, bucket string, fileName string, fileData *bytes.Reader) error {
 	_, err := s3Uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(AWS_FND_COMP_BUCKET),
+		Bucket: aws.String(os.Getenv("AWS_FND_COMP_BUCKET")),
 		Key:    aws.String(fileName),
 		Body:   fileData,
 		ACL:    aws.String("public-read"),
