@@ -15,9 +15,7 @@ func RouterV1() *mux.Router {
 	// signup api
 	signupHandlerFunc := http.HandlerFunc(signup_api.Signup)
 	signupMiddlewaresChain := middlewares.New(middlewares.BasicAuthMiddleware).Then(signupHandlerFunc)
-	// router.Methods("POST").Path("/signup").HandlerFunc(signupMiddlewaresChain)
-	http.Handle("/signup", signupMiddlewaresChain)
-	http.ListenAndServe(":8000", nil)
+	router.Methods("POST").Path("/signup").HandlerFunc(signupMiddlewaresChain)
 
 	return router
 }
