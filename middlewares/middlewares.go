@@ -12,7 +12,7 @@ func BasicAuthMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 		if user != common.BASIC_AUTH_USERNAME || pass != common.BASIC_AUTH_PASSWORD {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			common.Generate422Response(r.URL.Path, "Unauthorized access", w)
+			common.ErrorResponse(r.URL.Path, http.StatusUnauthorized, common.UNAUTHORIZED_ACCESS_ERROR_MESSAGE, w)
 			return
 		}
 		handler.ServeHTTP(w, r)
