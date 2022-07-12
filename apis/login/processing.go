@@ -4,7 +4,6 @@ import (
 	"find_competitor/common"
 	"find_competitor/models"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/golang-jwt/jwt/v4"
@@ -52,11 +51,9 @@ func generateToken(phoneNumber string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"phoneNumber": phoneNumber,
-		"nbf":         time.Date(2090, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(secretKey)
-
 	return tokenString, err
 }

@@ -2,8 +2,10 @@ package middlewares
 
 import (
 	"find_competitor/common"
-	"fmt"
 	"net/http"
+	"strings"
+
+	"github.com/golang-jwt/jwt"
 )
 
 func BasicAuthMiddleware(handler http.HandlerFunc) http.HandlerFunc {
@@ -21,7 +23,25 @@ func BasicAuthMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 
 func JwtTokenMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("JWT Token Middleware")
+		var secretKey = []byte(common.JWT_SECRET_KEY)
+		jwtData := strings.Split(r.Header.Get("Authorization"), " ")
+		var tokenString string = ""
+		if len(jwtData) > 1 {
+			tokenString = jwtData[1]
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			common.ErrorResponse(r.URL.Path, http.StatusUnauthorized, common.UNAUTHORIZED_ACCESS_ERROR_MESSAGE, w)
+			return
+		}
+		token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return secretKey, nil
+		})
+
+		if !token.Valid {
+			w.Header().Set("Content-Type", "application/json")
+			common.ErrorResponse(r.URL.Path, http.StatusUnauthorized, common.UNAUTHORIZED_ACCESS_ERROR_MESSAGE, w)
+			return
+		}
 		handler.ServeHTTP(w, r)
 	})
 }

@@ -8,7 +8,7 @@ import (
 
 type BaseSuccessResponse struct {
 	IsLoggedIn      bool   `json:"is_logged_in"`
-	UserID          int    `json:user_id`
+	UserID          int    `json:"user_id"`
 	Name            string `json:"name"`
 	ProfileImageUrl string `json:"profile_image_url"`
 	Token           string `json:"token"`
