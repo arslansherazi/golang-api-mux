@@ -37,8 +37,8 @@ func processRequestParams(logger *log.Logger, r *http.Request) (models.User, mul
 	// validate the request data
 	validate := validator.New()
 	err := validate.Struct(user)
-	validationErrors := err.(validator.ValidationErrors)
-	if validationErrors != nil {
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
 		return user, nil, validationErrors, true
 	}
 

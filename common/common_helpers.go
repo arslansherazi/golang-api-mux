@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -38,10 +40,7 @@ func GetLogger(fileName string) (*log.Logger, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = os.Mkdir(absPath, os.ModePerm) // create logs folder if not exists
-	if err != nil {
-		return nil, err
-	}
+	_ = os.Mkdir(absPath, os.ModePerm) // create logs folder if not exists
 	loggerFile, err := os.OpenFile(absPath+"/"+fileName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
@@ -50,5 +49,20 @@ func GetLogger(fileName string) (*log.Logger, error) {
 }
 
 func ParseValidationError(err error) string {
-	return ""
+	errorMessage := strings.Split(err.Error(), "\n")[0]
+	errors := strings.Split(errorMessage, "'")
+	errorField := ToSnakeCase(errors[3])
+	validationError := errors[5]
+	if validationError == "required" {
+		validationError = REQUIRED_FIELD_VALIDATION_MESSAGE
+	}
+	return errorField + ": " + validationError
+}
+
+func ToSnakeCase(str string) string {
+	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
 }
