@@ -12,7 +12,7 @@ type SuccessResponse struct {
 }
 
 /* Response Functions */
-func generateSignupSuccessResponse(requestUrl string, w http.ResponseWriter) {
+func generateSuccessResponse(requestUrl string, w http.ResponseWriter) {
 	successResponse := SuccessResponse{
 		IsSignedUp:   true,
 		BaseResponse: common.BaseResponse{StatusCode: 200, Success: true, Cmd: requestUrl},

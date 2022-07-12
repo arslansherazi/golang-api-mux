@@ -45,7 +45,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 					} else {
-						generateSignupSuccessResponse(r.URL.Path, w)
+						generateSuccessResponse(r.URL.Path, w)
 					}
 				}
 			}
