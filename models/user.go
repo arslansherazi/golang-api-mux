@@ -20,3 +20,9 @@ type User struct {
 func InsertUserIntoDB(db *gorm.DB, user User) {
 	db.Create(&user)
 }
+
+func GetUserData(db *gorm.DB, phoneNumber string) User {
+	var user User
+	db.Where("phone_number = ?", phoneNumber).First(&user)
+	return user
+}

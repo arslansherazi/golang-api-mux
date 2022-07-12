@@ -6,22 +6,30 @@ import (
 	"net/http"
 )
 
-type SuccessResponse struct {
+type BaseSuccessResponse struct {
 	IsLoggedIn      bool   `json:"is_loggedin"`
+	UserID          int    `json:user_id`
 	Name            string `json:"name"`
 	ProfileImageUrl string `json:"profile_image_url"`
 	Token           string `json:"token"`
+}
+
+type SuccessResponse struct {
+	Data BaseSuccessResponse `json:"data"`
 	common.BaseResponse
 }
 
 /* Response Functions */
-func generateSuccessResponse(requestUrl string, name string, profileImageUrl string, token string, w http.ResponseWriter) {
+func generateSuccessResponse(requestUrl string, userID int, name string, profileImageUrl string, token string, w http.ResponseWriter) {
 	successResponse := SuccessResponse{
-		IsLoggedIn:      true,
-		Name:            name,
-		ProfileImageUrl: profileImageUrl,
-		Token:           token,
-		BaseResponse:    common.BaseResponse{StatusCode: 200, Success: true, Cmd: requestUrl},
+		Data: BaseSuccessResponse{
+			IsLoggedIn:      true,
+			UserID:          userID,
+			Name:            name,
+			ProfileImageUrl: profileImageUrl,
+			Token:           token,
+		},
+		BaseResponse: common.BaseResponse{StatusCode: 200, Success: true, Cmd: requestUrl},
 	}
 	json.NewEncoder(w).Encode(&successResponse)
 }

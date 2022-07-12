@@ -1,6 +1,7 @@
 package router
 
 import (
+	login_api "find_competitor/apis/login"
 	signup_api "find_competitor/apis/signup"
 	"find_competitor/common"
 	middlewares "find_competitor/middlewares"
@@ -27,6 +28,11 @@ func RouterV1() *mux.Router {
 	signupHandlerFunc := http.HandlerFunc(signup_api.Signup)
 	signupMiddlewaresChain := middlewares.New(middlewares.BasicAuthMiddleware).Then(signupHandlerFunc)
 	router.Methods("POST").Path("/signup").HandlerFunc(signupMiddlewaresChain)
+
+	// login api
+	loginHandlerFunc := http.HandlerFunc(login_api.Login)
+	loginMiddlewaresChain := middlewares.New(middlewares.BasicAuthMiddleware).Then(loginHandlerFunc)
+	router.Methods("POST").Path("/login").HandlerFunc(loginMiddlewaresChain)
 
 	return router
 }

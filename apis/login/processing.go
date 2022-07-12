@@ -1,14 +1,24 @@
 package login_api
 
 import (
-	"log"
+	"find_competitor/common"
+	"find_competitor/models"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator"
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-func processRequestParams(logger *log.Logger, r *http.Request) (Validator, error) {
+func processRequestParams(r *http.Request) (Validator, error, bool) {
 	var requestData Validator
+
+	parseMultipartFormError := r.ParseMultipartForm(5 * 1024 * 1024)
+	if parseMultipartFormError != nil {
+		return requestData, parseMultipartFormError, false
+	}
 
 	requestData.PhoneNumber = r.PostForm.Get("phone_number")
 	requestData.Password = r.PostForm.Get("password")
@@ -18,8 +28,35 @@ func processRequestParams(logger *log.Logger, r *http.Request) (Validator, error
 	err := validate.Struct(requestData)
 	if err != nil {
 		validationErrors := err.(validator.ValidationErrors)
-		return requestData, validationErrors
+		return requestData, validationErrors, true
 	}
 
-	return requestData, nil
+	return requestData, nil, false
+}
+
+func validateUser(db *gorm.DB, phoneNumber string) models.User {
+	userData := models.GetUserData(db, phoneNumber)
+	return userData
+}
+
+func verifyPassword(password string, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func generateToken(phoneNumber string) (string, error) {
+	var secretKey = []byte(common.JWT_SECRET_KEY)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"phoneNumber": phoneNumber,
+		"nbf":         time.Date(2090, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+	})
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString(secretKey)
+
+	return tokenString, err
 }
