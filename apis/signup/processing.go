@@ -57,17 +57,15 @@ func generateProfileImageUrl(profileImage multipart.File) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		err = common.UploadFileIntoS3(s3Uploader, common.AWS_FND_COMP_BUCKET, fileName, convertedProfileImage)
+		err = common.UploadFileIntoS3(s3Uploader, os.Getenv("AWS_FND_COMP_BUCKET"), fileName, convertedProfileImage)
 		if err != nil {
 			return "", err
+		} else {
+			profileImageUrl = os.Getenv("BUCKET_BASE_URL") + fileName
 		}
 	} else {
 		profileImageUrl = ""
 	}
-
-	// TODO: Just for testing purpose
-	fileName := uuid.New().String() + common.IMAGES_EXTENSION
-	profileImageUrl = os.Getenv("BUCKET_BASE_URL") + fileName
 
 	return profileImageUrl, nil
 }
@@ -82,7 +80,7 @@ func handleProfileImage(profileImage multipart.File) (*bytes.Reader, error) {
 	convertedImage := imgconv.Resize(
 		image, imgconv.ResizeOption{Width: common.PROFILE_IMAGE_WIDTH, Height: common.PROFILE_IMAGE_HEIGHT},
 	)
-	// convert format of image to ong
+	// convert format of image to png
 	imgconv.Write(io.Discard, convertedImage, imgconv.FormatOption{Format: imgconv.PNG})
 	// convert image into bytes data
 	buffer := new(bytes.Buffer)
@@ -105,7 +103,8 @@ func createHashOfPassword(password string) (string, error) {
 }
 
 func insertUserIntoDB(user models.User) error {
-	db, err := configs.GetDbInstance()
+	isScript := false
+	db, err := configs.GetDbInstance(isScript)
 	if err != nil {
 		return err
 	} else {

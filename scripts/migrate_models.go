@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	db, err := configs.GetDbInstance()
+	isScript := true
+	db, err := configs.GetDbInstance(isScript)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	} else {
