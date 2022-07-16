@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
@@ -45,29 +46,27 @@ func processRequestParams(logger *log.Logger, r *http.Request) (models.User, mul
 	return user, profileImage, nil, false
 }
 
-func generateProfileImageUrl(profileImage multipart.File) (string, error) {
-	var profileImageUrl string
-	if profileImage != nil {
-		s3Uploader, err := common.GetS3Uploader()
-		if err != nil {
-			return "", err
-		}
-		fileName := uuid.New().String() + common.IMAGES_EXTENSION
-		convertedProfileImage, err := handleProfileImage(profileImage)
-		if err != nil {
-			return "", err
-		}
-		err = common.UploadFileIntoS3(s3Uploader, os.Getenv("AWS_FND_COMP_BUCKET"), fileName, convertedProfileImage)
-		if err != nil {
-			return "", err
-		} else {
-			profileImageUrl = os.Getenv("BUCKET_BASE_URL") + fileName
-		}
-	} else {
-		profileImageUrl = ""
+func uploadImage(profileImage multipart.File, fileName string, wg *sync.WaitGroup) error {
+	defer wg.Done()
+	s3Uploader, err := common.GetS3Uploader()
+	if err != nil {
+		return err
+	}
+	convertedProfileImage, err := handleProfileImage(profileImage)
+	if err != nil {
+		return err
+	}
+	err = common.UploadFileIntoS3(s3Uploader, os.Getenv("AWS_FND_COMP_BUCKET"), fileName, convertedProfileImage)
+	if err != nil {
+		return err
 	}
 
-	return profileImageUrl, nil
+	return nil
+}
+
+func generateProfileImageUrl() (string, string) {
+	fileName := uuid.New().String() + common.IMAGES_EXTENSION
+	return os.Getenv("BUCKET_BASE_URL") + fileName, fileName
 }
 
 func handleProfileImage(profileImage multipart.File) (*bytes.Reader, error) {

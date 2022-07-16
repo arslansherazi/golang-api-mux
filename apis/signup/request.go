@@ -4,6 +4,7 @@ import (
 	"find_competitor/common"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
@@ -11,6 +12,8 @@ import (
 func Signup(w http.ResponseWriter, r *http.Request) {
 	// response header
 	w.Header().Set("Content-Type", "application/json")
+
+	wg := new(sync.WaitGroup)
 
 	err := godotenv.Load()
 	if err != nil {
@@ -33,7 +36,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 				common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 			}
 		} else {
-			user.ProfileImageUrl, err = generateProfileImageUrl(profileImage)
+			// wg.Add(1)
+
+			profileImageUrl, fileName := generateProfileImageUrl()
+			user.ProfileImageUrl = profileImageUrl
+			go uploadImage(profileImage, fileName, wg)
 			if err != nil {
 				common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 			} else {
@@ -51,4 +58,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	wg.Wait()
 }

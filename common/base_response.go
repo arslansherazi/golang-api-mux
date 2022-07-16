@@ -22,5 +22,6 @@ func ErrorResponse(requestUrl string, statusCode uint32, message string, w http.
 		Message:      message,
 		BaseResponse: BaseResponse{StatusCode: statusCode, Success: false, Cmd: requestUrl},
 	}
+	w.WriteHeader(int(statusCode))
 	json.NewEncoder(w).Encode(&errorResponse)
 }
