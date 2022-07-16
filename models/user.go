@@ -26,3 +26,15 @@ func GetUserData(db *gorm.DB, phoneNumber string) User {
 	db.Where("phone_number = ?", phoneNumber).First(&user)
 	return user
 }
+
+func ValidatePhoneNumber(db *gorm.DB, phoneNumber string) (bool, error) {
+	var id int
+	err := db.Table("users").Select("id").Where("phone_number = ?", phoneNumber).Find(&id)
+	if err.Error != nil {
+		return false, err.Error
+	} else if id == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}

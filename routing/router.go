@@ -3,6 +3,7 @@ package router
 import (
 	login_api "find_competitor/apis/login"
 	signup_api "find_competitor/apis/signup"
+	validate_phone_number_api "find_competitor/apis/validate_phone_number"
 	"find_competitor/common"
 	middlewares "find_competitor/middlewares"
 	"net/http"
@@ -19,7 +20,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 func RouterV1() *mux.Router {
 	baseRouter := mux.NewRouter()
-	router := baseRouter.PathPrefix("/fnd/comp").Subrouter()
+	router := baseRouter.PathPrefix("/fnd/comp/").Subrouter()
 
 	// handle 404
 	router.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
@@ -33,6 +34,11 @@ func RouterV1() *mux.Router {
 	loginHandlerFunc := http.HandlerFunc(login_api.Login)
 	loginMiddlewaresChain := middlewares.New(middlewares.BasicAuthMiddleware).Then(loginHandlerFunc)
 	router.Methods("POST").Path("/login").HandlerFunc(loginMiddlewaresChain)
+
+	// validate phone number api
+	validatePhoneNumberHandlerFunc := http.HandlerFunc(validate_phone_number_api.ValidatePhoneNumber)
+	validatePhoneNumberMiddlewaresChain := middlewares.New(middlewares.BasicAuthMiddleware).Then(validatePhoneNumberHandlerFunc)
+	router.Methods("POST").Path("/validate/phone/number").HandlerFunc(validatePhoneNumberMiddlewaresChain)
 
 	return router
 }
