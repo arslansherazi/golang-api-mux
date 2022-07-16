@@ -20,12 +20,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// load environment variables
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(common.ENVIRONMENT_VARIBALES_ERROR_MESSAGE)
+		log.Println(common.ENVIRONMENT_VARIBALES_ERROR_MESSAGE)
 		common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 	} else {
 		logger, err := common.GetLogger("login_api")
 		if err != nil {
-			log.Fatal(common.LOGGER_ERROR_MESSAGE)
+			log.Println(common.LOGGER_ERROR_MESSAGE)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
 			// get db instance
