@@ -2,6 +2,7 @@ package signup_api
 
 import (
 	"find_competitor/common"
+	"find_competitor/configs"
 	"log"
 	"net/http"
 
@@ -19,32 +20,40 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	} else {
 		logger, err := common.GetLogger("signup_api")
 		if err != nil {
-			log.Fatal(common.LOGGER_ERROR_MESSAGE)
+			log.Println(common.LOGGER_ERROR_MESSAGE)
 			common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
-			user, profileImage, err, isValidationError := processRequestParams(logger, r)
+			// request url
+			requestUrl := r.URL.Path
+
+			// get db instance
+			isScript := true
+			db, err := configs.GetDbInstance(isScript)
+
 			if err != nil {
-				if isValidationError {
-					validationMessage := common.ParseValidationError(err)
-					common.ErrorResponse(r.URL.Path, http.StatusUnprocessableEntity, validationMessage, w)
-				} else {
-					logger.Println(err)
-					common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
-				}
+				log.Print(err)
+				common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 			} else {
-				user.ProfileImageUrl, err = generateProfileImageUrl(profileImage)
+				user, profileImage, err, isValidationError := processRequestParams(logger, r)
 				if err != nil {
-					common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
-				} else {
-					user.Password, err = createHashOfPassword(user.Password)
-					if err != nil {
-						common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+					if isValidationError {
+						validationMessage := common.ParseValidationError(err)
+						common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
 					} else {
-						err = insertUserIntoDB(user)
+						logger.Println(err)
+						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+					}
+				} else {
+					user.ProfileImageUrl, err = generateProfileImageUrl(profileImage)
+					if err != nil {
+						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+					} else {
+						user.Password, err = createHashOfPassword(user.Password)
 						if err != nil {
-							common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+							common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 						} else {
-							generateSuccessResponse(r.URL.Path, w)
+							insertUserIntoDB(db, user)
+							generateSuccessResponse(requestUrl, w)
 						}
 					}
 				}

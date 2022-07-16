@@ -3,7 +3,6 @@ package signup_api
 import (
 	"bytes"
 	"find_competitor/common"
-	"find_competitor/configs"
 	"find_competitor/models"
 	"image"
 	"image/png"
@@ -17,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func processRequestParams(logger *log.Logger, r *http.Request) (models.User, multipart.File, error, bool) {
@@ -102,13 +102,6 @@ func createHashOfPassword(password string) (string, error) {
 	return hashedPassword, nil
 }
 
-func insertUserIntoDB(user models.User) error {
-	isScript := false
-	db, err := configs.GetDbInstance(isScript)
-	if err != nil {
-		return err
-	} else {
-		models.InsertUserIntoDB(db, user)
-	}
-	return nil
+func insertUserIntoDB(db *gorm.DB, user models.User) {
+	models.InsertUserIntoDB(db, user)
 }
