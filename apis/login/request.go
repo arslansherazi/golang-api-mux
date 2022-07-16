@@ -14,41 +14,40 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// response header
 	w.Header().Set("Content-Type", "application/json")
 
+	// request url
+	requestUrl := r.URL.Path
+
 	// load environment variables
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(common.ENVIRONMENT_VARIBALES_ERROR_MESSAGE)
-		common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+		common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 	} else {
-		// request url
-		requestUrl := r.URL.Path
-
 		logger, err := common.GetLogger("login_api")
 		if err != nil {
 			log.Fatal(common.LOGGER_ERROR_MESSAGE)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
-			requestData, err, isValidationError := processRequestParams(r)
+			// get db instance
+			isScript := true
+			db, err := configs.GetDbInstance(isScript)
+
 			if err != nil {
-				if isValidationError {
-					validationMessage := common.ParseValidationError(err)
-					common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
-				} else {
-					logger.Println(err)
-					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
-				}
+				logger.Println(err)
+				common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 			} else {
-				phoneNumber := requestData.PhoneNumber
-				password := requestData.Password
-
-				// get db instance
-				isScript := true
-				db, err := configs.GetDbInstance(isScript)
-
+				requestData, err, isValidationError := processRequestParams(r)
 				if err != nil {
-					logger.Println(err)
-					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+					if isValidationError {
+						validationMessage := common.ParseValidationError(err)
+						common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
+					} else {
+						logger.Println(err)
+						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+					}
 				} else {
+					phoneNumber := requestData.PhoneNumber
+					password := requestData.Password
 					userData := validateUser(db, phoneNumber)
 					if (models.User{}) == userData {
 						common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, common.USER_NOT_EXIST_ERROR_MESSAGE, w)
