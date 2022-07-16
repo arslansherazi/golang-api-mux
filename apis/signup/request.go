@@ -13,18 +13,19 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	// response header
 	w.Header().Set("Content-Type", "application/json")
 
+	// request url
+	requestUrl := r.URL.Path
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(common.ENVIRONMENT_VARIBALES_ERROR_MESSAGE)
-		common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+		common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 	} else {
 		logger, err := common.GetLogger("signup_api")
 		if err != nil {
 			log.Println(common.LOGGER_ERROR_MESSAGE)
-			common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
-			// request url
-			requestUrl := r.URL.Path
 
 			// get db instance
 			isScript := true
@@ -32,7 +33,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 			if err != nil {
 				log.Print(err)
-				common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+				common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 			} else {
 				user, profileImage, err, isValidationError := processRequestParams(logger, r)
 				if err != nil {
