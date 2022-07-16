@@ -32,10 +32,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				if isValidationError {
 					validationMessage := common.ParseValidationError(err)
-					common.ErrorResponse(r.URL.Path, http.StatusUnprocessableEntity, validationMessage, w)
+					common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
 				} else {
 					logger.Println(err)
-					common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
 				phoneNumber := requestData.PhoneNumber
@@ -47,6 +47,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 				if err != nil {
 					logger.Println(err)
+					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
 					userData := validateUser(db, phoneNumber)
 					if (models.User{}) == userData {
@@ -59,7 +60,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 							token, err := generateToken(phoneNumber)
 							if err != nil {
 								logger.Println(err)
-								common.ErrorResponse(r.URL.Path, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+								common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 							} else {
 								generateSuccessResponse(requestUrl, int(userData.ID), userData.Name, userData.ProfileImageUrl, token, w)
 							}
