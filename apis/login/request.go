@@ -25,7 +25,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		db, err := configs.GetDbInstance(isScript)
 
 		if err != nil {
-			logger.Println(err)
+			common.LogError(logger, err)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
 			requestData, err, isValidationError := processRequestParams(r)
@@ -34,7 +34,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 					validationMessage := common.ParseValidationError(err)
 					common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
 				} else {
-					logger.Println(err)
+					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
@@ -50,7 +50,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 					} else {
 						token, err := generateToken(phoneNumber)
 						if err != nil {
-							logger.Println(err)
+							common.LogError(logger, err)
 							common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 						} else {
 							generateSuccessResponse(requestUrl, int(userData.ID), userData.Name, userData.ProfileImageUrl, token, w)

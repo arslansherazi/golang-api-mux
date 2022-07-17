@@ -25,7 +25,7 @@ func ValidatePhoneNumber(w http.ResponseWriter, r *http.Request) {
 		db, err := configs.GetDbInstance(isScript)
 
 		if err != nil {
-			logger.Println(err)
+			common.LogError(logger, err)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
 			requestData, err, isValidationError := processRequestParams(r)
@@ -34,13 +34,13 @@ func ValidatePhoneNumber(w http.ResponseWriter, r *http.Request) {
 					validationMessage := common.ParseValidationError(err)
 					common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
 				} else {
-					logger.Println(err)
+					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
 				isValidated, err := validatePhoneNumber(db, requestData.PhoneNumber)
 				if err != nil {
-					logger.Println(err)
+					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
 					generateSuccessResponse(requestUrl, isValidated, w)

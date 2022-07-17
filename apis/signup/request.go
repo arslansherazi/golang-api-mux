@@ -25,7 +25,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		db, err := configs.GetDbInstance(isScript)
 
 		if err != nil {
-			log.Print(err)
+			common.LogError(logger, err)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
 			user, profileImage, err, isValidationError := processRequestParams(logger, r)
@@ -34,16 +34,18 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 					validationMessage := common.ParseValidationError(err)
 					common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, validationMessage, w)
 				} else {
-					logger.Println(err)
+					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
 				user.ProfileImageUrl, err = generateProfileImageUrl(profileImage)
 				if err != nil {
+					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
 					user.Password, err = createHashOfPassword(user.Password)
 					if err != nil {
+						common.LogError(logger, err)
 						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 					} else {
 						insertUserIntoDB(db, user)

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/efimovalex/stackerr"
 )
 
 func GetS3Uploader() (*s3manager.Uploader, error) {
@@ -65,4 +66,9 @@ func ToSnakeCase(str string) string {
 	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	return strings.ToLower(snake)
+}
+
+func LogError(logger *log.Logger, err error) {
+	errorStack := stackerr.NewFromError(err).StackWithContext(err.Error()).Sprint()
+	logger.Print(errorStack + "\n")
 }

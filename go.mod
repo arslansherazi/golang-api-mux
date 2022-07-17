@@ -15,6 +15,8 @@ require (
 
 require (
 	github.com/disintegration/imaging v1.6.2 // indirect
+	github.com/efimovalex/stackerr v1.0.4 // indirect
+	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
