@@ -1,4 +1,4 @@
-package validate_phone_number_api
+package host_competition_api
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 )
 
 type BaseSuccessResponse struct {
-	IsValidated bool `json:"is_validated"`
+	IsCompetitionHosted bool `json:"is_competition_hosted"`
 }
 
 type SuccessResponse struct {
@@ -16,9 +16,9 @@ type SuccessResponse struct {
 }
 
 /* Response Functions */
-func generateSuccessResponse(requestUrl string, isValidated bool, w http.ResponseWriter) {
+func generateSuccessResponse(requestUrl string, w http.ResponseWriter) {
 	successResponse := SuccessResponse{
-		Data:         BaseSuccessResponse{IsValidated: isValidated},
+		Data:         BaseSuccessResponse{IsCompetitionHosted: true},
 		BaseResponse: common.BaseResponse{StatusCode: 200, Success: true, Cmd: requestUrl},
 	}
 	json.NewEncoder(w).Encode(&successResponse)

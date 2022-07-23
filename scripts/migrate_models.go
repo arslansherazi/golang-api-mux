@@ -13,6 +13,6 @@ func main() {
 		fmt.Println("Error: " + err.Error())
 	} else {
 		db.AutoMigrate(&models.User{})
-		db.AutoMigrate(&models.Competiton{})
+		db.AutoMigrate(&models.Competition{})
 	}
 }

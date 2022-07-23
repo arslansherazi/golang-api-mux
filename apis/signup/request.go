@@ -38,7 +38,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
-				user.ProfileImageUrl, err = generateProfileImageUrl(profileImage)
+				user.ProfileImageUrl, err = common.UploadFile(profileImage, common.PROFILE_IMAGE_TYPE)
 				if err != nil {
 					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
