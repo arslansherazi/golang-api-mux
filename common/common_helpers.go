@@ -2,8 +2,13 @@ package common
 
 import (
 	"bytes"
+	"image"
+	"image/png"
+	"io"
 	"log"
+	"mime/multipart"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -12,6 +17,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/efimovalex/stackerr"
+	"github.com/google/uuid"
+	"github.com/sunshineplan/imgconv"
 )
 
 func GetS3Uploader() (*s3manager.Uploader, error) {
@@ -23,10 +30,10 @@ func GetS3Uploader() (*s3manager.Uploader, error) {
 	return s3Uploader, nil
 }
 
-func UploadFileIntoS3(s3Uploader *s3manager.Uploader, bucket string, fileName string, fileData *bytes.Reader) error {
+func UploadFileIntoS3(s3Uploader *s3manager.Uploader, bucket string, folderName string, fileName string, fileData *bytes.Reader) error {
 	_, err := s3Uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(os.Getenv("AWS_FND_COMP_BUCKET")),
-		Key:    aws.String(fileName),
+		Bucket: &bucket,
+		Key:    aws.String(path.Join(folderName, fileName)),
 		Body:   fileData,
 		ACL:    aws.String("public-read"),
 	})
@@ -71,4 +78,93 @@ func ToSnakeCase(str string) string {
 func LogError(logger *log.Logger, err error) {
 	errorStack := stackerr.NewFromError(err).StackWithContext(err.Error()).Sprint()
 	logger.Print(errorStack + "\n")
+}
+
+func HandleImage(imageFile multipart.File, fileType string) (*bytes.Reader, error) {
+	// convert multipart file into image file
+	image, _, err := image.Decode(imageFile)
+	if err != nil {
+		return nil, err
+	}
+	// resize image
+	var imageWidth, imageHeight int
+	if fileType == PROFILE_IMAGE_TYPE {
+		imageWidth = PROFILE_IMAGE_WIDTH
+		imageHeight = PROFILE_IMAGE_HEIGHT
+	} else if fileType == COMPETITION_IMAGE_TYPE {
+		imageWidth = COMPETITION_IMAGE_WIDTH
+		imageHeight = COMPETITION_IMAGE_HEIGHT
+	}
+
+	convertedImage := imgconv.Resize(
+		image, imgconv.ResizeOption{Width: imageWidth, Height: imageHeight},
+	)
+	// convert format of image to png
+	imgconv.Write(io.Discard, convertedImage, imgconv.FormatOption{Format: imgconv.PNG})
+
+	encodedImage, err := EncodeFile(fileType, convertedImage, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return encodedImage, nil
+}
+
+func EncodeFile(fileType string, imageFile image.Image, file multipart.File) (*bytes.Reader, error) {
+	// convert image into bytes data
+	buffer := new(bytes.Buffer)
+	if fileType == PROFILE_IMAGE_TYPE || fileType == COMPETITION_IMAGE_TYPE {
+		err := png.Encode(buffer, imageFile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// handle files other than images
+	}
+	imageData := bytes.NewReader(buffer.Bytes())
+
+	return imageData, nil
+}
+
+func UploadFile(file multipart.File, fileType string) (string, error) {
+	var fileURL string
+	if file != nil {
+		s3Uploader, err := GetS3Uploader()
+		if err != nil {
+			return "", err
+		}
+
+		var fileExtension string
+		var compressedFile *bytes.Reader
+		if fileType == PROFILE_IMAGE_TYPE || fileType == COMPETITION_IMAGE_TYPE {
+			fileExtension = IMAGES_EXTENSION
+			compressedFile, err = HandleImage(file, fileType)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			// handle files other than images
+		}
+		fileName := uuid.New().String() + fileExtension
+
+		// get s3 bucket folder name
+		var folderName string
+		if fileType == PROFILE_IMAGE_TYPE {
+			folderName = os.Getenv("AWS_FND_COMP_BUCKET_PROFILE_IMAGES_FOLDER")
+		} else if fileType == COMPETITION_IMAGE_TYPE {
+			folderName = os.Getenv("AWS_FND_COMP_BUCKET_COMPETITION_IMAGES_FOLDER")
+		}
+
+		// upload file into s3 and generate file url
+		err = UploadFileIntoS3(s3Uploader, os.Getenv("AWS_FND_COMP_BUCKET"), folderName, fileName, compressedFile)
+		if err != nil {
+			return "", err
+		} else {
+			fileURL = os.Getenv("BUCKET_BASE_URL") + folderName + "/" + fileName
+		}
+	} else {
+		fileURL = ""
+	}
+
+	return fileURL, nil
 }

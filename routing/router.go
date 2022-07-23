@@ -1,6 +1,7 @@
 package router
 
 import (
+	host_competition_api "find_competitor/apis/host_competition"
 	login_api "find_competitor/apis/login"
 	signup_api "find_competitor/apis/signup"
 	validate_phone_number_api "find_competitor/apis/validate_phone_number"
@@ -39,6 +40,11 @@ func RouterV1() *mux.Router {
 	validatePhoneNumberHandlerFunc := http.HandlerFunc(validate_phone_number_api.ValidatePhoneNumber)
 	validatePhoneNumberMiddlewaresChain := middlewares.New(middlewares.BasicAuthMiddleware).Then(validatePhoneNumberHandlerFunc)
 	router.Methods("POST").Path("/validate/phone/number").HandlerFunc(validatePhoneNumberMiddlewaresChain)
+
+	// host competition api
+	hostCompetitionHandlerFunc := http.HandlerFunc(host_competition_api.HostCompetition)
+	hostCompetitionMiddlewaresChain := middlewares.New(middlewares.JwtTokenMiddleware).Then(hostCompetitionHandlerFunc)
+	router.Methods("POST").Path("/host/competition").HandlerFunc(hostCompetitionMiddlewaresChain)
 
 	return router
 }
