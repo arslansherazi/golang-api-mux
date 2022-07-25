@@ -1,6 +1,7 @@
 package router
 
 import (
+	edit_competition_api "find_competitor/apis/edit_competition"
 	host_competition_api "find_competitor/apis/host_competition"
 	login_api "find_competitor/apis/login"
 	signup_api "find_competitor/apis/signup"
@@ -45,6 +46,11 @@ func RouterV1() *mux.Router {
 	hostCompetitionHandlerFunc := http.HandlerFunc(host_competition_api.HostCompetition)
 	hostCompetitionMiddlewaresChain := middlewares.New(middlewares.JwtTokenMiddleware).Then(hostCompetitionHandlerFunc)
 	router.Methods("POST").Path("/host/competition").HandlerFunc(hostCompetitionMiddlewaresChain)
+
+	// host competition api
+	editCompetitionHandlerFunc := http.HandlerFunc(edit_competition_api.EditCompetition)
+	editCompetitionMiddlewaresChain := middlewares.New(middlewares.JwtTokenMiddleware).Then(editCompetitionHandlerFunc)
+	router.Methods("POST").Path("/edit/competition").HandlerFunc(editCompetitionMiddlewaresChain)
 
 	return router
 }
