@@ -15,14 +15,23 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/efimovalex/stackerr"
 	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 )
 
-func GetS3Uploader() (*s3manager.Uploader, error) {
+func GetS3Session() (*session.Session, error) {
 	session, err := session.NewSession(&aws.Config{Region: aws.String(os.Getenv("AWS_REGION"))})
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
+}
+
+func GetS3Uploader() (*s3manager.Uploader, error) {
+	session, err := GetS3Session()
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +45,18 @@ func UploadFileIntoS3(s3Uploader *s3manager.Uploader, bucket string, folderName 
 		Key:    aws.String(path.Join(folderName, fileName)),
 		Body:   fileData,
 		ACL:    aws.String("public-read"),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteFileFromS3(session *session.Session, bucket string, folderName string, fileName string) error {
+	svc := s3.New(session)
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(path.Join(folderName, fileName)),
 	})
 	if err != nil {
 		return err
@@ -167,4 +188,34 @@ func UploadFile(file multipart.File, fileType string) (string, error) {
 	}
 
 	return fileURL, nil
+}
+
+func DeleteFile(fileURL string, fileType string) error {
+	// get s3 bucket folder name
+	var folderName string
+	if fileType == PROFILE_IMAGE_TYPE {
+		folderName = os.Getenv("AWS_FND_COMP_BUCKET_PROFILE_IMAGES_FOLDER")
+	} else if fileType == COMPETITION_IMAGE_TYPE {
+		folderName = os.Getenv("AWS_FND_COMP_BUCKET_COMPETITION_IMAGES_FOLDER")
+	}
+
+	// get fileName
+	fileURLData := strings.Split(fileURL, "/")
+	fileName := fileURLData[len(fileURLData)-1]
+
+	// get s3 session
+	session, err := GetS3Session()
+	if err != nil {
+		return err
+	}
+
+	err = DeleteFileFromS3(session, os.Getenv("AWS_FND_COMP_BUCKET"), folderName, fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func JoinString(data []string, join string) string {
+	return strings.Join(data, ",")
 }

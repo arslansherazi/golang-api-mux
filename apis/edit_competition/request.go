@@ -1,11 +1,11 @@
 package edit_competition_api
 
 import (
-	"encoding/json"
 	"find_competitor/common"
 	"find_competitor/configs"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func EditCompetition(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func EditCompetition(w http.ResponseWriter, r *http.Request) {
 			common.LogError(logger, err)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
-			competitionData, err, isValidationError, images := processRequestParams(r)
+			competitionData, err, isValidationError, deletedImages, addedImages := processRequestParams(r)
 			if err != nil {
 				if isValidationError {
 					validationMessage := common.ParseValidationError(err)
@@ -39,36 +39,41 @@ func EditCompetition(w http.ResponseWriter, r *http.Request) {
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
-				var imagesURLs []string
-
-				for _, image := range images {
-					imageURL, err := common.UploadFile(image, common.COMPETITION_IMAGE_TYPE)
-					if err != nil {
-						common.LogError(logger, err)
-						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
-					} else {
-						imagesURLs = append(imagesURLs, imageURL)
-					}
-				}
-
-				// convert image urls into json
-				imagesJsonData, err := json.MarshalIndent(imagesURLs, "", "\t")
+				competitionImagesData, err := getCompetitionImagesData(db, competitionData.ID)
 				if err != nil {
 					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
-					if len(imagesJsonData) > 4 {
-						competitionData.Images = imagesJsonData
-					}
-					err := insertCompetitionIntoDB(db, competitionData)
+					competitionImagesURLs := strings.Split(competitionImagesData, ",")
 					if err != nil {
 						common.LogError(logger, err)
 						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 					} else {
-						generateSuccessResponse(requestUrl, w)
+						competitionURLsCurrentLength := len(competitionImagesURLs)
+
+						// handle newly added images
+						competitionImagesURLs, err := handleNewlyAddedImages(addedImages, competitionImagesURLs)
+						if err != nil {
+							common.LogError(logger, err)
+							common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+						} else {
+							// handle deleted images
+							competitionImagesURLs, err = handleDeletedImages(competitionImagesURLs, deletedImages)
+							if err != nil {
+								common.LogError(logger, err)
+								common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+							} else {
+								err := editCompetition(db, competitionData, competitionImagesURLs, competitionURLsCurrentLength)
+								if err != nil {
+									common.LogError(logger, err)
+									common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+								} else {
+									generateSuccessResponse(requestUrl, w)
+								}
+							}
+						}
 					}
 				}
-
 			}
 		}
 	}
