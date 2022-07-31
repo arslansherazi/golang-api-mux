@@ -44,35 +44,34 @@ func EditCompetition(w http.ResponseWriter, r *http.Request) {
 					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
-					competitionImagesURLs := strings.Split(competitionImagesData, ",")
+					var competitionImagesURLs []string
+					if competitionImagesData != "" {
+						competitionImagesURLs = strings.Split(competitionImagesData, ",")
+					}
+					competitionURLsCurrentLength := len(competitionImagesURLs)
+
+					// handle newly added images
+					competitionImagesURLs, err := handleNewlyAddedImages(addedImages, competitionImagesURLs)
 					if err != nil {
 						common.LogError(logger, err)
 						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 					} else {
-						competitionURLsCurrentLength := len(competitionImagesURLs)
-
-						// handle newly added images
-						competitionImagesURLs, err := handleNewlyAddedImages(addedImages, competitionImagesURLs)
+						// handle deleted images
+						competitionImagesURLs, err = handleDeletedImages(competitionImagesURLs, deletedImages)
 						if err != nil {
 							common.LogError(logger, err)
 							common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 						} else {
-							// handle deleted images
-							competitionImagesURLs, err = handleDeletedImages(competitionImagesURLs, deletedImages)
+							err := editCompetition(db, competitionData, competitionImagesURLs, competitionURLsCurrentLength)
 							if err != nil {
 								common.LogError(logger, err)
 								common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 							} else {
-								err := editCompetition(db, competitionData, competitionImagesURLs, competitionURLsCurrentLength)
-								if err != nil {
-									common.LogError(logger, err)
-									common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
-								} else {
-									generateSuccessResponse(requestUrl, w)
-								}
+								generateSuccessResponse(requestUrl, w)
 							}
 						}
 					}
+
 				}
 			}
 		}
