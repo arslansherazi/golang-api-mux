@@ -1,6 +1,7 @@
 package host_competition_api
 
 import (
+	"find_competitor/common"
 	"find_competitor/models"
 	"mime/multipart"
 	"net/http"
@@ -23,7 +24,7 @@ func processRequestParams(r *http.Request) (models.Competition, error, bool, []m
 	// handle user id
 	userID := r.PostForm.Get("user_id")
 	if userID != "" {
-		requestData.UserID, err = strconv.Atoi(userID)
+		requestData.UserID, err = strconv.ParseInt(userID, 10, 64)
 		if err != nil {
 			return models.Competition{}, err, false, []multipart.File{}
 		}
@@ -90,7 +91,27 @@ func processRequestParams(r *http.Request) (models.Competition, error, bool, []m
 	return requestData, nil, false, images
 }
 
+func uploadImages(images []multipart.File) ([]string, error) {
+	var imagesURLs []string
+	for _, image := range images {
+		imageURL, err := common.UploadFile(image, common.COMPETITION_IMAGE_TYPE)
+		if err != nil {
+			return nil, err
+		} else {
+			imagesURLs = append(imagesURLs, imageURL)
+		}
+	}
+	return imagesURLs, nil
+}
+
 func insertCompetitionIntoDB(db *gorm.DB, competition models.Competition) error {
 	err := models.InsertCompetitionIntoDB(db, competition)
 	return err
+}
+
+func getCompetitionImagesData(imagesURLs []string) string {
+	if len(imagesURLs) > 1 {
+		return common.JoinString(imagesURLs, ",")
+	}
+	return imagesURLs[0]
 }

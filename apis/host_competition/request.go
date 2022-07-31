@@ -1,7 +1,6 @@
 package host_competition_api
 
 import (
-	"encoding/json"
 	"find_competitor/common"
 	"find_competitor/configs"
 	"log"
@@ -39,27 +38,14 @@ func HostCompetition(w http.ResponseWriter, r *http.Request) {
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
-				var imagesURLs []string
+				// handle images
 
-				for _, image := range images {
-					imageURL, err := common.UploadFile(image, common.COMPETITION_IMAGE_TYPE)
-					if err != nil {
-						common.LogError(logger, err)
-						common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
-					} else {
-						imagesURLs = append(imagesURLs, imageURL)
-					}
-				}
-
-				// convert image urls into json
-				imagesJsonData, err := json.MarshalIndent(imagesURLs, "", "\t")
+				imagesURLs, err := uploadImages(images)
 				if err != nil {
 					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
-					if len(imagesJsonData) > 4 {
-						competitionData.Images = imagesJsonData
-					}
+					competitionData.Images = getCompetitionImagesData(imagesURLs)
 					err := insertCompetitionIntoDB(db, competitionData)
 					if err != nil {
 						common.LogError(logger, err)
