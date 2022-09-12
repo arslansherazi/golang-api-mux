@@ -15,6 +15,9 @@ type User struct {
 	ForgotPasswordCode uint16
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+
+	// many-to-many relationship
+	Competition []*Competition `gorm:"many2many:participant"`
 }
 
 func InsertUserIntoDB(db *gorm.DB, user User) {
