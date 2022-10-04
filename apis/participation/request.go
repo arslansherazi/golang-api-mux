@@ -3,6 +3,7 @@ package participation_api
 import (
 	"find_competitor/common"
 	"find_competitor/configs"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -38,7 +39,8 @@ func Participation(w http.ResponseWriter, r *http.Request) {
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
-				verifyParticipant(participationData)
+				// models.VerifyParticipant(db, participationData)
+				fmt.Println(participationData)
 			}
 		}
 	}

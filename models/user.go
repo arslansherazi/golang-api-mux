@@ -1,23 +1,22 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 type User struct {
-	ID                 uint   `gorm:"primaryKey;autoIncrement"`
+	ID                 uint64 `gorm:"primaryKey;autoIncrement"`
 	Name               string `gorm:"size:100;not null" validate:"required,min=3,max=100"`
 	ProfileImageUrl    string `gorm:"size:500"`
 	PhoneNumber        string `gorm:"index;size:100;not null" validate:"required,min=4,max=20"`
 	Password           string `gorm:"size:500;not null" validate:"required,min=8,max=16"`
-	ForgotPasswordCode uint16
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ForgotPasswordCode uint64
+	CreatedAt          uint64 `gorm:"autoCreateTime"`
+	UpdatedAt          uint64 `gorm:"autoUpdateTime:milli"`
 
-	// many-to-many relationship
-	Competition []*Competition `gorm:"many2many:participant"`
+	// relationships
+	Competition  []Competition  `gorm:"constraint:OnDelete:CASCADE;"`
+	Competitions []*Competition `gorm:"many2many:participant;"`
 }
 
 func InsertUserIntoDB(db *gorm.DB, user User) {

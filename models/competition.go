@@ -1,14 +1,13 @@
 package models
 
 import (
-	"time"
-
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
 type Competition struct {
-	ID           uint64  `gorm:"primaryKey;autoIncrement"`
-	User       	 User
+	ID           uint64 `gorm:"primaryKey;autoIncrement"`
+	UserID       uint64
 	Title        string  `gorm:"size:100;not null" validate:"required,min=10,max=100"`
 	Description  string  `gorm:"size:5000;not null" validate:"required,min=100,max=5000"`
 	Latitude     float64 `gorm:"not null" validate:"required"`
@@ -17,12 +16,12 @@ type Competition struct {
 	StartingDate string  `gorm:"not null" validate:"required,min=10,max=10"`
 	StartingTime string  `gorm:"not null" validate:"required,min=5,max=5"`
 	EndingTime   string
-	Images       string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	Images       pq.StringArray `gorm:"type:text[]"`
+	CreatedAt    uint64         `gorm:"autoCreateTime"`
+	UpdatedAt    uint64         `gorm:"autoUpdateTime:milli"`
 
-	// many-to-many relationship
-	User []*User `gorm:"many2many:participant"`
+	// relationships
+	Users []*User `gorm:"many2many:participant;"`
 }
 
 func InsertCompetitionIntoDB(db *gorm.DB, competition Competition) error {
@@ -45,15 +44,15 @@ func EditCompetition(db *gorm.DB, competition Competition) error {
 	return nil
 }
 
-func AddParticipant(db *gorm.DB, participant Participant) error {
-	result := db.Create(&participant)
-	return result.Error
-}
+// func AddParticipant(db *gorm.DB, participant Participant) error {
+// 	result := db.Create(&participant)
+// 	return result.Error
+// }
 
-func VerifyParticipant(db *gorm.DB, participant Participant) (bool, error) {
-	err := db.Find(&participant)
-	if err.Error != nil {
-		return false, err.Error
-	}
-	return true, nil
-}
+// func VerifyParticipant(db *gorm.DB, participant Participant) (bool, error) {
+// 	err := db.Find(&participant)
+// 	if err.Error != nil {
+// 		return false, err.Error
+// 	}
+// 	return true, nil
+// }
