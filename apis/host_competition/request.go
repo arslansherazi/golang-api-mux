@@ -45,7 +45,7 @@ func HostCompetition(w http.ResponseWriter, r *http.Request) {
 					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
-					competitionData.Images = getCompetitionImagesData(imagesURLs)
+					competitionData.Images = imagesURLs
 					err := insertCompetitionIntoDB(db, competitionData)
 					if err != nil {
 						common.LogError(logger, err)

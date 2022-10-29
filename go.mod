@@ -11,6 +11,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
+	github.com/lib/pq v1.10.7
 	github.com/sunshineplan/imgconv v1.0.5
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	gorm.io/driver/postgres v1.3.4
@@ -36,7 +37,6 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.10.7 // indirect
 	github.com/pdfcpu/pdfcpu v0.3.13 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect

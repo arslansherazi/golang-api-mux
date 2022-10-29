@@ -3,7 +3,7 @@ package participation_api
 import (
 	"find_competitor/common"
 	"find_competitor/configs"
-	"fmt"
+	models "find_competitor/models"
 	"log"
 	"net/http"
 )
@@ -29,6 +29,7 @@ func Participation(w http.ResponseWriter, r *http.Request) {
 			common.LogError(logger, err)
 			common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 		} else {
+			// process request data
 			participationData, err, isValidationError := processRequestParams(r)
 			if err != nil {
 				if isValidationError {
@@ -39,8 +40,14 @@ func Participation(w http.ResponseWriter, r *http.Request) {
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
-				// models.VerifyParticipant(db, participationData)
-				fmt.Println(participationData)
+				// add participation into db
+				err := models.AddParticipant(db, participationData.UserID, participationData.CompetitionID)
+				if err != nil {
+					common.LogError(logger, err)
+					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
+				} else {
+					generateSuccessResponse(requestUrl, w)
+				}
 			}
 		}
 	}

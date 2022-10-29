@@ -5,7 +5,6 @@ import (
 	"find_competitor/configs"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func EditCompetition(w http.ResponseWriter, r *http.Request) {
@@ -39,15 +38,11 @@ func EditCompetition(w http.ResponseWriter, r *http.Request) {
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				}
 			} else {
-				competitionImagesData, err := getCompetitionImagesData(db, competitionData.ID)
+				competitionImagesURLs, err := getCompetitionImagesURLs(db, competitionData.ID)
 				if err != nil {
 					common.LogError(logger, err)
 					common.ErrorResponse(requestUrl, http.StatusInternalServerError, common.INTERNAL_SERVER_ERROR_MESSAGE, w)
 				} else {
-					var competitionImagesURLs []string
-					if competitionImagesData != "" {
-						competitionImagesURLs = strings.Split(competitionImagesData, ",")
-					}
 					competitionURLsCurrentLength := len(competitionImagesURLs)
 
 					// handle newly added images

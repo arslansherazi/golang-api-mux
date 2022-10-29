@@ -7,7 +7,7 @@ import (
 )
 
 type BaseSuccessResponse struct {
-	IsCompetitionEdited bool `json:"is_competition_edited"`
+	IsParticipated bool `json:"is_participated"`
 }
 
 type SuccessResponse struct {
@@ -18,7 +18,7 @@ type SuccessResponse struct {
 /* Response Functions */
 func generateSuccessResponse(requestUrl string, w http.ResponseWriter) {
 	successResponse := SuccessResponse{
-		Data:         BaseSuccessResponse{IsCompetitionEdited: true},
+		Data:         BaseSuccessResponse{IsParticipated: true},
 		BaseResponse: common.BaseResponse{StatusCode: 200, Success: true, Cmd: requestUrl},
 	}
 	json.NewEncoder(w).Encode(&successResponse)

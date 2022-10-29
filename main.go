@@ -3,6 +3,7 @@ package main
 import (
 	"find_competitor/common"
 	router "find_competitor/routing"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -17,5 +18,5 @@ func main() {
 	}
 
 	router := router.RouterV1()
-	http.ListenAndServe(":4000", router)
+	fmt.Println(http.ListenAndServe(":4000", router))
 }

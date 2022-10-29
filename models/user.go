@@ -15,8 +15,8 @@ type User struct {
 	UpdatedAt          uint64 `gorm:"autoUpdateTime:milli"`
 
 	// relationships
-	Competition  []Competition  `gorm:"constraint:OnDelete:CASCADE;"`
-	Competitions []*Competition `gorm:"many2many:participant;"`
+	Competitions              []Competition `gorm:"constraint:OnDelete:CASCADE;"`
+	ParticipationCompetitions []Competition `gorm:"many2many:participant;"`
 }
 
 func InsertUserIntoDB(db *gorm.DB, user User) {

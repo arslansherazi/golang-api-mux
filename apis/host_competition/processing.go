@@ -24,7 +24,7 @@ func processRequestParams(r *http.Request) (models.Competition, error, bool, []m
 	// handle user id
 	userID := r.PostForm.Get("user_id")
 	if userID != "" {
-		requestData.UserID, err = strconv.ParseInt(userID, 10, 64)
+		requestData.UserID, err = strconv.ParseUint(userID, 10, 64)
 		if err != nil {
 			return models.Competition{}, err, false, []multipart.File{}
 		}
@@ -107,11 +107,4 @@ func uploadImages(images []multipart.File) ([]string, error) {
 func insertCompetitionIntoDB(db *gorm.DB, competition models.Competition) error {
 	err := models.InsertCompetitionIntoDB(db, competition)
 	return err
-}
-
-func getCompetitionImagesData(imagesURLs []string) string {
-	if len(imagesURLs) > 1 {
-		return common.JoinString(imagesURLs, ",")
-	}
-	return imagesURLs[0]
 }

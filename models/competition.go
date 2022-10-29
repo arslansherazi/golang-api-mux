@@ -19,9 +19,6 @@ type Competition struct {
 	Images       pq.StringArray `gorm:"type:text[]"`
 	CreatedAt    uint64         `gorm:"autoCreateTime"`
 	UpdatedAt    uint64         `gorm:"autoUpdateTime:milli"`
-
-	// relationships
-	Users []*User `gorm:"many2many:participant;"`
 }
 
 func InsertCompetitionIntoDB(db *gorm.DB, competition Competition) error {
@@ -29,13 +26,13 @@ func InsertCompetitionIntoDB(db *gorm.DB, competition Competition) error {
 	return result.Error
 }
 
-func GetCompetitionImagesData(db *gorm.DB, competitionID uint64) (string, error) {
-	var competitionImagesData string
-	err := db.Table("competition").Select("images").Where("id= ?", competitionID).Find(&competitionImagesData)
+func GetCompetitionImagesURLs(db *gorm.DB, competitionID uint64) ([]string, error) {
+	var competitionImagesURLs []string
+	err := db.Table("competition").Select("images").Where("id= ?", competitionID).Find(&competitionImagesURLs)
 	if err.Error != nil {
-		return "", err.Error
+		return nil, err.Error
 	}
-	return competitionImagesData, nil
+	return competitionImagesURLs, nil
 }
 
 func EditCompetition(db *gorm.DB, competition Competition) error {
@@ -44,15 +41,18 @@ func EditCompetition(db *gorm.DB, competition Competition) error {
 	return nil
 }
 
-// func AddParticipant(db *gorm.DB, participant Participant) error {
-// 	result := db.Create(&participant)
-// 	return result.Error
-// }
-
-// func VerifyParticipant(db *gorm.DB, participant Participant) (bool, error) {
-// 	err := db.Find(&participant)
-// 	if err.Error != nil {
-// 		return false, err.Error
-// 	}
-// 	return true, nil
-// }
+func AddParticipant(db *gorm.DB, userID uint64, competitionID uint64) error {
+	var participant User
+	var competition []Competition
+	err := db.Table("competition").Where("id= ?", competitionID).Find(&competition)
+	if err != nil {
+		return err.Error
+	}
+	err = db.Table("user").Where("id= ?", userID).Find(&participant)
+	if err != nil {
+		return err.Error
+	}
+	participant.ParticipationCompetitions = competition
+	result := db.Create(&participant)
+	return result.Error
+}

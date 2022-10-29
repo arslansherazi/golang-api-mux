@@ -25,7 +25,7 @@ func processRequestParams(r *http.Request) (models.Competition, error, bool, []s
 	// user id
 	userID := r.PostForm.Get("user_id")
 	if userID != "" {
-		requestData.UserID, err = strconv.ParseInt(userID, 10, 64)
+		requestData.UserID, err = strconv.ParseUint(userID, 10, 64)
 		if err != nil {
 			return models.Competition{}, err, false, nil, nil
 		}
@@ -129,11 +129,7 @@ func processRequestParams(r *http.Request) (models.Competition, error, bool, []s
 
 func editCompetition(db *gorm.DB, competition models.Competition, competitionURLs []string, competitionURLsCurrentLength int) error {
 	if len(competitionURLs) != competitionURLsCurrentLength {
-		if len(competitionURLs) > 1 {
-			competition.Images = common.JoinString(competitionURLs, ",")
-		} else {
-			competition.Images = competitionURLs[0]
-		}
+		competition.Images = competitionURLs
 	}
 
 	err := models.EditCompetition(db, competition)
@@ -143,12 +139,12 @@ func editCompetition(db *gorm.DB, competition models.Competition, competitionURL
 	return nil
 }
 
-func getCompetitionImagesData(db *gorm.DB, competitionID uint64) (string, error) {
-	competitionImagesData, err := models.GetCompetitionImagesData(db, competitionID)
+func getCompetitionImagesURLs(db *gorm.DB, competitionID uint64) ([]string, error) {
+	competitionImagesURLs, err := models.GetCompetitionImagesURLs(db, competitionID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return competitionImagesData, nil
+	return competitionImagesURLs, nil
 }
 
 func handleDeletedImages(competitionImagesURLs []string, deletedImages []string) ([]string, error) {

@@ -3,7 +3,6 @@ package login_api
 import (
 	"find_competitor/common"
 	"find_competitor/configs"
-	"find_competitor/models"
 	"log"
 	"net/http"
 )
@@ -41,7 +40,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				phoneNumber := requestData.PhoneNumber
 				password := requestData.Password
 				userData := validateUser(db, phoneNumber)
-				if (models.User{}) == userData {
+				if userData.Name == "" {
 					common.ErrorResponse(requestUrl, http.StatusUnprocessableEntity, common.USER_NOT_EXIST_ERROR_MESSAGE, w)
 				} else {
 					isPasswordVerified := verifyPassword(password, userData.Password)
